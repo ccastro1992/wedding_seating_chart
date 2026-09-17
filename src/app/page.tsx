@@ -48,7 +48,7 @@ export default function Home() {
   };
 
   return (
-    <main className="central-card-strip shadow-2xl my-0 sm:my-6 sm:rounded-2xl overflow-hidden border-t sm:border border-gold/30 bg-white">
+    <main className="central-card-strip shadow-2xl overflow-hidden bg-white">
       {/* Encabezado con el Logo Floral */}
       <Header />
 
@@ -79,7 +79,6 @@ export default function Home() {
         </p>
         <p className="text-xs text-charcoal-light/60 font-light mt-1 flex items-center justify-center gap-1">
           <span>Con amor y gratitud por acompañarnos</span>
-          <Heart className="w-3 h-3 text-gold-dark fill-gold-dark" />
         </p>
       </footer>
     </main>

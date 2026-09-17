@@ -34,7 +34,7 @@ export const Header: React.FC = () => {
 
       {/* Título de la recepción y lugar */}
       <div className="max-w-lg mx-auto">
-        <h1 className="font-serif text-3xl sm:text-4xl text-charcoal font-normal tracking-wide mb-2">
+        <h1 className="font-serif text-2xl sm:text-3xl text-charcoal font-normal tracking-wide mb-2">
           Asignación de Mesas
         </h1>
 
@@ -44,7 +44,7 @@ export const Header: React.FC = () => {
         </div>
 
         <p className="text-sm md:text-base font-serif italic text-charcoal/80 leading-relaxed px-2">
-          «El amor no solo se celebra, se comparte 🥂. Ingresa tu nombre para conocer tu lugar en la fiesta.»
+          «El amor no solo se celebra, se comparte . Ingresa tu nombre para conocer tu lugar en la fiesta.»
         </p>
       </div>
     </header>
