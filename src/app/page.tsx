@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Header, OrnamentalDivider } from '@/components/Header';
 import { SearchGuest } from '@/components/SearchGuest';
 import { GuestResults } from '@/components/GuestResults';
-import { searchGuests } from '@/lib/supabase';
+import { searchGuests, getFamilyTablemates } from '@/lib/supabase';
 import { EVENT_CONFIG } from '@/lib/config';
 import { Invitado, SearchStatus } from '@/types/invitado';
 import { Heart } from 'lucide-react';
@@ -14,6 +14,20 @@ export default function Home() {
   const [status, setStatus] = useState<SearchStatus>('idle');
   const [searchResults, setSearchResults] = useState<Invitado[]>([]);
   const [selectedGuest, setSelectedGuest] = useState<Invitado | null>(null);
+  const [familyTablemates, setFamilyTablemates] = useState<Invitado[]>([]);
+
+  useEffect(() => {
+    setFamilyTablemates([]);
+    if (!selectedGuest) return;
+
+    let cancelled = false;
+    getFamilyTablemates(selectedGuest).then((members) => {
+      if (!cancelled) setFamilyTablemates(members);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedGuest]);
 
   const handleSearch = useCallback(async (term: string) => {
     setSearchTerm(term);
@@ -65,6 +79,7 @@ export default function Home() {
           status={status}
           searchResults={searchResults}
           selectedGuest={selectedGuest}
+          familyTablemates={familyTablemates}
           searchTerm={searchTerm}
           onSelectGuest={(guest) => setSelectedGuest(guest)}
           onResetSearch={handleResetSearch}

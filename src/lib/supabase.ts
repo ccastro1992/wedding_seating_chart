@@ -48,18 +48,18 @@ export function buildAccentInsensitiveRegex(str: string): string {
 
 // Datos de prueba con casos reales incluyendo tildes y acentos
 const MOCK_INVITADOS: Invitado[] = [
-  { id: '1', nombre: 'Carlos Castro', mesa: 'Mesa de Honor - Los Laureles' },
-  { id: '2', nombre: 'Karla Gómez', mesa: 'Mesa de Honor - Los Laureles' },
-  { id: '3', nombre: 'Sofía Castro', mesa: 'Mesa 1 - Jazmín' },
-  { id: '4', nombre: 'Alejandro Martínez', mesa: 'Mesa 2 - Eucalipto' },
-  { id: '5', nombre: 'Valeria Hernández', mesa: 'Mesa 2 - Eucalipto' },
-  { id: '6', nombre: 'Mateo López', mesa: 'Mesa 3 - Magnolias' },
-  { id: '7', nombre: 'Lucía Fernández', mesa: 'Mesa 3 - Magnolias' },
-  { id: '8', nombre: 'Diego Rodríguez', mesa: 'Mesa 4 - Olivo' },
-  { id: '9', nombre: 'Camila Morales', mesa: 'Mesa 4 - Olivo' },
-  { id: '10', nombre: 'Elena Navarro', mesa: 'Mesa 6 - Almendros' },
-  { id: '11', nombre: 'Iñaki Núñez', mesa: 'Mesa 7 - Orquídeas' },
-  { id: '12', nombre: 'Juan Calderón', mesa: 'Mesa 8 - Los Pinos' },
+  { id: '1', nombre: 'Carlos Castro', mesa: 'Mesa de Honor - Los Laureles', familia: 'castro-gomez' },
+  { id: '2', nombre: 'Karla Gómez', mesa: 'Mesa de Honor - Los Laureles', familia: 'castro-gomez' },
+  { id: '3', nombre: 'Sofía Castro', mesa: 'Mesa de Honor - Los Laureles', familia: 'castro-gomez' },
+  { id: '4', nombre: 'Alejandro Martínez', mesa: 'Mesa 2 - Eucalipto', familia: 'martinez-hernandez' },
+  { id: '5', nombre: 'Valeria Hernández', mesa: 'Mesa 2 - Eucalipto', familia: 'martinez-hernandez' },
+  { id: '6', nombre: 'Mateo López', mesa: 'Mesa 3 - Magnolias', familia: 'lopez-fernandez' },
+  { id: '7', nombre: 'Lucía Fernández', mesa: 'Mesa 3 - Magnolias', familia: 'lopez-fernandez' },
+  { id: '8', nombre: 'Diego Rodríguez', mesa: 'Mesa 4 - Olivo', familia: 'rodriguez-morales' },
+  { id: '9', nombre: 'Camila Morales', mesa: 'Mesa 4 - Olivo', familia: 'rodriguez-morales' },
+  { id: '10', nombre: 'Elena Navarro', mesa: 'Mesa 6 - Almendros', familia: null },
+  { id: '11', nombre: 'Iñaki Núñez', mesa: 'Mesa 7 - Orquídeas', familia: null },
+  { id: '12', nombre: 'Juan Calderón', mesa: 'Mesa 8 - Los Pinos', familia: null },
 ];
 
 export interface SearchResult {
@@ -93,8 +93,8 @@ export async function searchGuests(searchTerm: string): Promise<SearchResult> {
     // 1. Búsqueda con expresión regular POSIX (~* / imatch) en PostgreSQL
     // Permite que "calderon" encuentre "Calderón", "sofia" encuentre "Sofía", "nunez" encuentre "Núñez"
     const { data: regexData, error: regexError } = await supabase
-      .from('invitados')
-      .select('id, nombre, mesa')
+      .from('mesas')
+      .select('id, nombre, mesa, familia')
       .filter('nombre', 'imatch', regexPattern)
       .order('nombre', { ascending: true })
       .limit(10);
@@ -114,8 +114,8 @@ export async function searchGuests(searchTerm: string): Promise<SearchResult> {
 
     // 3. Fallback con ilike estándar
     const { data: ilikeData, error: ilikeError } = await supabase
-      .from('invitados')
-      .select('id, nombre, mesa')
+      .from('mesas')
+      .select('id, nombre, mesa, familia')
       .ilike('nombre', `%${clean}%`)
       .order('nombre', { ascending: true })
       .limit(10);
@@ -124,5 +124,33 @@ export async function searchGuests(searchTerm: string): Promise<SearchResult> {
     return { data: (ilikeData as Invitado[]) || [], isDemo: false };
   } catch (err: any) {
     return { data: [], isDemo: false, error: err?.message || 'Error de conexión' };
+  }
+}
+
+/**
+ * Familiares del invitado (mismo identificador de familia) sentados en su misma mesa.
+ */
+export async function getFamilyTablemates(guest: Invitado): Promise<Invitado[]> {
+  if (!guest.familia) return [];
+
+  if (!isSupabaseConfigured()) {
+    return MOCK_INVITADOS.filter(
+      (inv) => inv.id !== guest.id && inv.familia === guest.familia && inv.mesa === guest.mesa
+    ).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('mesas')
+      .select('id, nombre, mesa, familia')
+      .eq('familia', guest.familia)
+      .eq('mesa', guest.mesa)
+      .neq('id', guest.id)
+      .order('nombre', { ascending: true });
+
+    if (error) return [];
+    return (data as Invitado[]) || [];
+  } catch {
+    return [];
   }
 }

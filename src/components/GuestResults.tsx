@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utensils, Sparkles, RefreshCw, Heart, ChevronRight, SearchX, HelpCircle } from 'lucide-react';
+import { Utensils, Sparkles, RefreshCw, Heart, ChevronRight, SearchX, HelpCircle, Users } from 'lucide-react';
 import { Invitado, SearchStatus } from '@/types/invitado';
 import { OrnamentalDivider } from './Header';
 
@@ -7,6 +7,7 @@ interface GuestResultsProps {
   status: SearchStatus;
   searchResults: Invitado[];
   selectedGuest: Invitado | null;
+  familyTablemates: Invitado[];
   searchTerm: string;
   onSelectGuest: (guest: Invitado) => void;
   onResetSearch: () => void;
@@ -16,6 +17,7 @@ export const GuestResults: React.FC<GuestResultsProps> = ({
   status,
   searchResults,
   selectedGuest,
+  familyTablemates,
   searchTerm,
   onSelectGuest,
   onResetSearch,
@@ -156,9 +158,6 @@ export const GuestResults: React.FC<GuestResultsProps> = ({
           <h2 className="font-serif text-3xl sm:text-4xl text-charcoal font-medium tracking-wide mb-1">
             {selectedGuest.nombre}
           </h2>
-          <p className="text-xs text-charcoal-light/70 uppercase tracking-widest font-sans mb-3">
-            Invitado de Honor
-          </p>
 
           <OrnamentalDivider className="my-4" />
 
@@ -173,16 +172,45 @@ export const GuestResults: React.FC<GuestResultsProps> = ({
                 {selectedGuest.mesa}
               </span>
             </div>
-            <p className="text-xs text-charcoal-light/60 italic font-serif mt-2">
-              Por favor ubica este número de mesa a tu llegada al salón
-            </p>
           </div>
+
+          {/* Familiares en la misma mesa */}
+          {familyTablemates.length > 0 && (
+            <section
+              aria-labelledby="familiares-mesa"
+              className="my-6 pt-4 border-t border-gold/20 text-left"
+            >
+              <h3
+                id="familiares-mesa"
+                className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-[0.2em] text-eucalyptus font-semibold mb-3"
+              >
+                <Users className="w-4 h-4" aria-hidden="true" />
+                <span>Te acompañan en tu mesa</span>
+              </h3>
+              <ul className="space-y-2">
+                {familyTablemates.map((familiar) => (
+                  <li
+                    key={familiar.id}
+                    className="flex items-center gap-3 py-2 px-4 rounded-xl border border-gold/20"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="w-8 h-8 rounded-full border border-gold/30 flex items-center justify-center text-gold-dark font-serif text-sm font-semibold flex-shrink-0"
+                    >
+                      {familiar.nombre[0]}
+                    </span>
+                    <span className="font-serif text-base text-charcoal font-medium leading-tight">
+                      {familiar.nombre}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {/* Pie de la tarjeta */}
           <div className="mt-6 pt-4 border-t border-gold/20 flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-1.5 text-xs text-eucalyptus font-medium italic font-serif">
-              <Heart className="w-3.5 h-3.5 fill-eucalyptus/20" />
-              <span>¡Estamos ansiosos por celebrar contigo!</span>
             </div>
 
             <button
